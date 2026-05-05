@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>QR Studio – ສ້າງ & ສະແກນ QR Code</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@400;600;700;800&display=swap');
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -56,12 +55,6 @@
     @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
     #qr-canvas-container{background:#fff;border-radius:16px;padding:18px;box-shadow:var(--shadow);position:relative;display:inline-block}
     #logo-overlay{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:48px;height:48px;border-radius:10px;background:#fff;padding:4px;display:none;object-fit:contain}
-    #reader{border-radius:12px;overflow:hidden;background:#000}
-    #scan-result{margin-top:18px;padding:18px 20px;background:var(--surface2);border:1px solid var(--border);border-radius:12px;display:none;animation:fadeUp .3s ease}
-    #scan-result .result-label{font-size:.72rem;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:8px;font-weight:700}
-    #scan-result-text{color:var(--text);font-size:.93rem;word-break:break-all;line-height:1.6}
-    #scan-result-link{display:inline-block;margin-top:10px;color:var(--accent);font-size:.86rem;text-decoration:none}
-    #scan-result-link:hover{text-decoration:underline}
     .support-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}
     @media(max-width:640px){.support-grid,.form-row{grid-template-columns:1fr}}
     .donate-qr-box{background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:24px 18px;text-align:center}
@@ -144,7 +137,7 @@
 
 <nav>
   <button class="tab-btn active" data-tab="generate">✦ ສ້າງ QR</button>
-  <button class="tab-btn" data-tab="scan">📷 ສະແກນ QR</button>
+  
   <button class="tab-btn" data-tab="support">☕ ສະໜັບສະໜູນ</button>
 </nav>
 
@@ -206,33 +199,7 @@
   </div>
 </section>
 
-<!-- ════ TAB: ສະແກນ QR ════ -->
-<section id="tab-scan" class="section">
-  <div class="card">
-    <div class="card-title"><span class="icon">📷</span> ສະແກນ QR Code ດ້ວຍກ້ອງ</div>
-    <p style="color:var(--muted);font-size:.88rem;margin-bottom:18px;">ອະນຸຍາດການເຂົ້າໃຊ້ກ້ອງ ແລ້ວນຳ QR Code ເຂົ້າມາໃນກອບ</p>
-    <div id="reader" style="width:100%;max-width:520px;margin:0 auto;"></div>
-    <div class="btn-group" style="justify-content:center;margin-top:18px;">
-      <button class="btn btn-primary" id="btn-start-scan" onclick="startScan()">▶ ເລີ່ມສະແກນ</button>
-      <button class="btn btn-danger"  id="btn-stop-scan"  onclick="stopScan()" style="display:none;">⏹ ຢຸດສະແກນ</button>
-    </div>
-    <div id="scan-result">
-      <div class="result-label">ຜົນການສະແກນ</div>
-      <div id="scan-result-text"></div>
-      <a id="scan-result-link" href="#" target="_blank" rel="noopener" style="display:none;">🔗 ເປີດລິ້ງ</a>
-      <div class="btn-group" style="margin-top:12px;">
-        <button class="btn btn-secondary" onclick="copyScanResult()">📋 ຄັດລອກ</button>
-        <button class="btn btn-secondary" onclick="clearScanResult()">🗑 ລຶບ</button>
-      </div>
-    </div>
-  </div>
-  <div class="card">
-    <div class="card-title"><span class="icon">🖼️</span> ສະແກນຈາກຮູບພາບ</div>
-    <input type="file" id="scan-file" accept="image/*"
-      style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 14px;color:var(--muted);width:100%;cursor:pointer;margin-bottom:14px;"/>
-    <button class="btn btn-primary" onclick="scanFromFile()">🔍 ສະແກນຈາກໄຟລ໌ຮູບ</button>
-  </div>
-</section>
+
 
 <!-- ════ TAB: ສະໜັບສະໜູນ ════ -->
 <section id="tab-support" class="section">
@@ -398,7 +365,7 @@
 'use strict';
 const BCEL_ACCOUNT='099120001734757001';
 const STORAGE_KEY='qrstudio_supporters_v1';
-let qrInstance=null,logoDataURL=null,html5QrCode=null,proofDataURL=null,donateAmount=null,confirmCallback=null;
+let qrInstance=null,logoDataURL=null,proofDataURL=null,donateAmount=null,confirmCallback=null;
 let supporters=[];
 
 /* ── INIT ── */
@@ -476,46 +443,6 @@ async function copyToClipboard(){
   const canvas=getQRCanvas();if(!canvas){showToast('⚠️ ກະລຸນາສ້າງ QR ກ່ອນ');return;}
   try{const blob=await new Promise(res=>canvas.toBlob(res));await navigator.clipboard.write([new ClipboardItem({'image/png':blob})]);showToast('📋 ຄັດລອກຮູບແລ້ວ!');}
   catch(e){showToast('❌ ບໍ່ສາມາດ Copy ໃນບຣາວເຊີນີ້ໄດ້');}
-}
-
-/* ── SCANNER ── */
-function startScan(){
-  document.getElementById('btn-start-scan').style.display='none';
-  document.getElementById('btn-stop-scan').style.display='inline-flex';
-  clearScanResult();
-  html5QrCode=new Html5Qrcode('reader');
-  html5QrCode.start({facingMode:'environment'},{fps:12,qrbox:{width:240,height:240}},onScanSuccess,()=>{})
-    .catch(err=>{showToast('❌ ບໍ່ສາມາດເຂົ້າໃຊ້ກ້ອງໄດ້');resetScanBtns();});
-}
-function stopScan(){
-  if(html5QrCode){html5QrCode.stop().then(()=>{html5QrCode.clear();html5QrCode=null;}).catch(()=>{});}
-  resetScanBtns();
-}
-function resetScanBtns(){
-  document.getElementById('btn-start-scan').style.display='inline-flex';
-  document.getElementById('btn-stop-scan').style.display='none';
-}
-function onScanSuccess(text){stopScan();showScanResult(text);showToast('✅ ສະແກນສຳເລັດ!');}
-function showScanResult(text){
-  document.getElementById('scan-result').style.display='block';
-  document.getElementById('scan-result-text').textContent=text;
-  const lnk=document.getElementById('scan-result-link');
-  if(/^https?:\/\//i.test(text)){lnk.href=text;lnk.style.display='inline-block';}else lnk.style.display='none';
-}
-function clearScanResult(){
-  document.getElementById('scan-result').style.display='none';
-  document.getElementById('scan-result-text').textContent='';
-  document.getElementById('scan-result-link').style.display='none';
-}
-function copyScanResult(){
-  const t=document.getElementById('scan-result-text').textContent;
-  if(!t)return;navigator.clipboard.writeText(t).then(()=>showToast('📋 ຄັດລອກແລ້ວ!'));
-}
-function scanFromFile(){
-  const file=document.getElementById('scan-file').files[0];
-  if(!file){showToast('⚠️ ກະລຸນາເລືອກໄຟລ໌ຮູບກ່ອນ');return;}
-  Html5Qrcode.scanFile(file,false).then(t=>{showScanResult(t);showToast('✅ ສະແກນຈາກຮູບສຳເລັດ!');})
-    .catch(()=>showToast('❌ ບໍ່ພົບ QR Code ໃນຮູບພາບ'));
 }
 
 /* ── DONATE ── */
